@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Join an Ashen Path lobby</title>
+<style>
+/* One narrow card, the same ember-on-ash look as the download page. Dark only, on purpose. */
+:root {
+  --ash: #15130f; --soot: #1e1b16; --char: #2a2620; --bone: #e9e1d2; --dust: #a69c8a;
+  --ember: #e0743a; --ember-deep: #b8521f; --brass: #c9a35c; --rule: #3a342b; --warn: #e8a15a;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html { background: var(--ash); }
+body {
+  margin: 0; min-height: 100vh; display: grid; place-items: center;
+  background: radial-gradient(120% 60% at 50% 0%, #2b1d14 0%, var(--ash) 55%) no-repeat, var(--ash);
+  color: var(--bone); font: 1.0625rem/1.6 "Segoe UI", system-ui, sans-serif;
+  padding: 2.5rem 16px; box-sizing: border-box;
+}
+main { max-width: 34rem; width: 100%; display: grid; gap: 1.25rem; }
+.eyebrow { font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; color: var(--dust); margin: 0; }
+h1 { font: 400 clamp(2rem, 8vw, 2.8rem)/1.05 Georgia, "Iowan Old Style", serif; margin: 0; text-shadow: 0 0 28px rgba(224,116,58,.35); text-wrap: balance; }
+p { margin: 0; }
+.muted { color: var(--dust); }
+.card { display: grid; gap: .9rem; padding: 1.3rem; background: var(--soot); border: 1px solid var(--rule); border-radius: 6px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .6rem; justify-self: start;
+  background: linear-gradient(180deg, var(--ember) 0%, var(--ember-deep) 100%); color: #1a0e06;
+  font-weight: 700; font-size: 1.1rem; text-decoration: none; padding: .85rem 1.4rem; border-radius: 4px; border: 0; cursor: pointer;
+  box-shadow: 0 0 0 1px #f0a070 inset, 0 6px 22px rgba(224,116,58,.28);
+}
+.btn:hover { filter: brightness(1.08); }
+a { color: var(--brass); }
+a:focus-visible, .btn:focus-visible, button:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+ol { margin: 0; padding-left: 1.3rem; display: grid; gap: .45rem; }
+code { font: .85rem ui-monospace, Consolas, monospace; background: var(--char); border: 1px solid var(--rule); border-radius: 4px; padding: .35rem .5rem; overflow-wrap: anywhere; display: block; }
+.row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.copy { font: inherit; font-size: .9rem; color: var(--bone); background: var(--char); border: 1px solid var(--rule); border-radius: 4px; padding: .4rem .8rem; cursor: pointer; }
+.bad { border-color: #6a4a2e; }
+.bad h2 { color: var(--warn); }
+h2 { font: 400 1.35rem Georgia, serif; color: var(--brass); margin: 0; }
+footer { font-size: .85rem; color: var(--dust); border-top: 1px solid var(--rule); padding-top: 1rem; }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Mortuus · The Ashen Path</p>
+  <h1 id="title">Join a friend's lobby</h1>
+
+  <section class="card" id="good" hidden>
+    <p>Your friend sent you a link to their Ashen Path lobby. Steam opens the game (or uses the one already running) and joins it.</p>
+    <a class="btn" id="join" href="#">Join the lobby in Steam</a>
+    <p class="muted">If your browser asks whether to open Steam, allow it. Nothing happens? Make sure Steam is running and signed in, then press the button again.</p>
+    <details>
+      <summary class="muted">Join without the browser</summary>
+      <p class="muted" style="margin-top:.5rem">Press <b>Win + R</b>, paste this and press Enter:</p>
+      <div class="row"><code id="steam"></code><button class="copy" id="copy" type="button">Copy</button></div>
+    </details>
+  </section>
+
+  <section class="card bad" id="bad" hidden>
+    <h2>This link is incomplete</h2>
+    <p>Ask your friend to press <b>Copy invite link</b> again (F8 in the game, at the top of The Ashen Path) and send the whole link.</p>
+  </section>
+
+  <section class="card">
+    <h2>Don't have Ashen Path yet?</h2>
+    <ol>
+      <li>Have the <b>Mortuus</b> demo in your Steam library, with Steam signed in.</li>
+      <li>Install <a href="https://github.com/Patryk-beep/ashen-path-releases/releases/latest">the latest Ashen Path</a>. You need the same version as your friend.</li>
+      <li>Come back to this link and press <b>Join the lobby in Steam</b>.</li>
+    </ol>
+  </section>
+
+  <footer>The Ashen Path is an unofficial, fan-made mod and isn't affiliated with the makers of Mortuus. This page only builds a <code style="display:inline;padding:0 .3rem">steam://joinlobby</code> link from the address; it stores and sends nothing.</footer>
+</main>
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var lobby = params.get('lobby') || '', via = params.get('via') || '';
+  var digits = /^[0-9]{1,20}$/;
+  if (!digits.test(lobby) || !digits.test(via)) { document.getElementById('bad').hidden = false; return; }
+  var link = 'steam://joinlobby/5363350/' + lobby + '/' + via;
+  document.getElementById('good').hidden = false;
+  document.getElementById('join').href = link;
+  document.getElementById('steam').textContent = link;
+  document.getElementById('copy').addEventListener('click', function () {
+    var button = this;
+    try { navigator.clipboard.writeText(link).then(function () { button.textContent = 'Copied'; }, function () { button.textContent = 'Select and copy'; }); }
+    catch (e) { button.textContent = 'Select and copy'; }
+  });
+  // One automatic attempt; the button stays for browsers that want a click first.
+  setTimeout(function () { location.href = link; }, 400);
+})();
+</script>
+</body>
+</html>
